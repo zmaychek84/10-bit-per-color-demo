@@ -1,0 +1,109 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Glog.AI",
+          "organization": "Glog.AI",
+          "fullName": "Glog, Making software more secure",
+          "version": "1.0.0",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://www.glog.ai",
+          "rules": [
+            {
+              "id": "glog-aed27796-05f8-4186-a5fe-9923340b9566",
+              "help": {
+                "text": "",
+                "markdown": "### Detected Issue with C Function (malloc) Vulnerability in C++\n\nThe vulnerability arises from the improper use of the `malloc` function, specifically when allocating memory based on a potentially untrusted or unchecked value, such as `fileInfo.EndOfFile.LowPart`. This can lead to various issues, including buffer overflows, memory corruption, or denial of service if the size is not properly validated.\n\n### General Mitigation Advice\n\n1. **Input Validation**: Always validate the size before using it in memory allocation functions. Ensure that the size is within expected bounds and does not lead to integer overflow.\n2. **Use Safer Functions**: Consider using safer alternatives or wrappers that include size checks.\n3. **Error Handling**: Implement robust error handling to manage allocation failures gracefully.\n4. **Limit Memory Usage**: Set limits on the maximum memory that can be allocated to prevent excessive memory consumption.\n\n### Source Code Fix Recommendation\n\n```cpp\n#include <iostream>\n#include <windows.h> // For FILE_STANDARD_INFO and GetFileInformationByHandleEx\n\nvoid processFile(HANDLE fileHandle) {\n    FILE_STANDARD_INFO fileInfo;\n    if (!GetFileInformationByHandleEx(fileHandle, FileStandardInfo, &fileInfo, sizeof(fileInfo))) {\n        std::cerr << \"Failed to get file information.\" << std::endl;\n        return;\n    }\n\n    // Validate the size before using it in malloc\n    if (fileInfo.EndOfFile.LowPart > MAX_ALLOWED_SIZE) {\n        std::cerr << \"File size is too large.\" << std::endl;\n        return;\n    }\n\n    // Allocate memory safely\n    char* buffer = (char*)malloc(fileInfo.EndOfFile.LowPart);\n    if (buffer == nullptr) {\n        std::cerr << \"Memory allocation failed.\" << std::endl;\n        return;\n    }\n\n    // Use the buffer...\n\n    // Free the allocated memory\n    free(buffer);\n}\n```\n\n### Library Dependencies\n\n- `<iostream>`: For standard input and output operations.\n- `<windows.h>`: For Windows-specific functions and types, such as `HANDLE` and `GetFileInformationByHandleEx`.\n\n### OWASP Resources\n\n- [OWASP Top Ten](https://owasp.org/www-project-top-ten/)\n- [OWASP Secure Coding Practices](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/)\n\n### Common Weakness Enumeration (CWE)\n\n- [CWE-190: Integer Overflow or Wraparound](https://cwe.mitre.org/data/definitions/190.html)\n- [CWE-789: Uncontrolled Memory Allocation](https://cwe.mitre.org/data/definitions/789.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS161085"
+                ]
+              }
+            }
+          ],
+          "language": "en-US",
+          "contents": [
+            "localizedData",
+            "nonLocalizedData"
+          ],
+          "isComprehensive": false
+        }
+      },
+      "language": "en-US",
+      "results": [
+        {
+          "ruleId": "glog-aed27796-05f8-4186-a5fe-9923340b9566",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Problematic C function detected (malloc)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "10bpc_demo/framework.h"
+                },
+                "region": {
+                  "startLine": 161,
+                  "startColumn": 40,
+                  "endLine": 161,
+                  "endColumn": 74,
+                  "charOffset": 4483,
+                  "charLength": 34,
+                  "snippet": {
+                    "text": "malloc(fileInfo.EndOfFile.LowPart)",
+                    "rendered": {
+                      "text": "malloc(fileInfo.EndOfFile.LowPart)",
+                      "markdown": "`malloc(fileInfo.EndOfFile.LowPart)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "If the value provided to malloc is the result of unsafe integer math, it can result in an exploitable condition. "
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "10bpc_demo/framework.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 4483,
+                        "charLength": 34
+                      },
+                      "insertedContent": {
+                        "text": "calloc(<number of elements>, <size of each element>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        }
+      ],
+      "newlineSequences": [
+        "\r\n",
+        "\n"
+      ]
+    }
+  ]
+}
